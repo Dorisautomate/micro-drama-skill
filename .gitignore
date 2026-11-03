@@ -1,0 +1,6 @@
+.env
+config/providers.md
+series/
+story/*.md
+!story/story-template.md
+__pycache__/
