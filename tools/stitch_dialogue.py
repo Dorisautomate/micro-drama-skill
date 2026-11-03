@@ -58,6 +58,7 @@ def main():
     ap.add_argument("--hold", type=float, default=3.0)
     ap.add_argument("--lead", type=float, default=0.3)
     ap.add_argument("--tail", type=float, default=0.45)
+    ap.add_argument("--size", default="1920x1080", help="output size WxH, e.g. 1080x1920 for 9:16")
     ap.add_argument("--scene", help="only stitch one scene, e.g. SC02 (writes final/EPnn_SC02.mp4)")
     args = ap.parse_args()
 
@@ -86,7 +87,8 @@ def main():
             ss, to, kind = 0.0, min(duration(src), args.hold), "ambient"
         length = to - ss
         out = work / f"{name}.mp4"
-        vf = "fps=24,scale=1920:1080:flags=lanczos,setsar=1"
+        W, H = args.size.split("x")
+        vf = f"fps=24,scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H},setsar=1"
         af = f"atrim={ss:.3f}:{to:.3f},asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st={max(0, length - 0.08):.3f}:d=0.08,aresample=44100"
         cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", str(src)]
         if has_audio(src):

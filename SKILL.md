@@ -44,7 +44,13 @@ State counts and credit estimate (images, clips and the chosen duration of each 
 
 Estimate how long the spoken line takes and pick the clip length that fits it, **with headroom**, so no sentence is cut off:
 
-`seconds = words / 2.3 + 0.9`, then choose the smallest available duration >= that (typically 4, 6, 8 or 10 s). Run `python tools/plan_durations.py "line one" "line two" ...` to get the table. Examples: 7 words -> 4 s; 12 words -> 8 s; 17 words -> 10 s. Prefer splitting a very long line (over about 17 words) into two shots of two speakers or two angles. Add to every dialogue prompt: "the character finishes the whole sentence, then stops speaking and holds a natural pause". Check the generated clip: if the speech runs to the very last frame, regenerate that line with the next duration up.
+`seconds = words / 1.7 + 1.0` (the model speaks with expression, about 1.7 words per second), then choose the smallest available duration >= that (4, 6, 8 or 10 s). Run `python tools/plan_durations.py "line one" "line two" ...` to get the table. Write short lines (6-11 words) so most clips land at 6-8 s. Prefer splitting a very long line (over about 17 words) into two shots. **If an 8 s clip still has speech running to the last frame, regenerate that line at 10 s so the sentence finishes.** Add to every dialogue prompt: "the character finishes the whole sentence, then stops speaking and holds a natural pause". Check the generated clip: if the speech runs to the very last frame, regenerate that line with the next duration up.
+
+## Dialogue hygiene
+
+- **No repeated words inside a line** (the model says them twice). `plan_durations.py` flags repeats. Avoid stutters, ellipses and "Hmm. ... Hmm". Put each line in the prompt exactly once, and add "Every word is spoken exactly once."
+- Aspect ratio is chosen per episode (16:9 or 9:16). Use it for every image and clip of that episode and pass `--size 1080x1920` (9:16) or `1920x1080` to the stitcher.
+- Outfit changes between episodes: keep the face and build identical (attach the character's sheet) and describe a new luxury outfit in the prompt; make a new sheet for each new outfit.
 
 ## Rules
 

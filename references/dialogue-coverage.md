@@ -37,7 +37,7 @@ One sentence per character, e.g. "deep, calm, classy Nigerian-accented male voic
 
 ## 5. Duration
 
-`seconds = words / 2.3 + 0.9`, pick the smallest available clip length >= that (4, 6, 8, 10). `tools/plan_durations.py` does the math. If a generated clip's speech runs to the last frame, redo it one step longer. The stitcher trims silence after the last word.
+`seconds = words / 1.7 + 1.0`, pick the smallest available clip length >= that (4, 6, 8, 10). `tools/plan_durations.py` does the math. If a generated clip's speech runs to the last frame, redo it at 10 s. The stitcher trims silence after the last word. Keep lines to 6-11 words and never repeat a word inside a line.
 
 ## 6. Failures
 
