@@ -42,3 +42,19 @@ One sentence per character, e.g. "deep, calm, classy Nigerian-accented male voic
 ## 6. Failures
 
 Image-to-video filters sometimes reject stills (revealing clothes, children in the background). Retry with the other angle, or fall back to a slow push-in made with ffmpeg and keep the line as a silent shot or move the line to another shot.
+
+## 7. Premium visual style (preferred look)
+
+Modeled on popular AI drama channels (Mede Tales, Tales with Toria): polished, glossy, high-fashion. Use it in every character sheet, environment and shot prompt.
+- Cast: very attractive, model-like actors, flawless radiant skin, sculpted features, groomed beards, styled hair, full glam makeup. Even "poor" characters look clean, stylish and fit (fitted tank tops, coveralls tied at the waist, tidy caps).
+- Wardrobe: tailored three-piece suits and tuxedos, couture dresses, rich lace and agbada with gold embroidery, gold jewellery, designer bags.
+- Sets: luxury interiors (marble, gold accents, chandeliers, floor-to-ceiling windows with a city skyline), vibrant clean villages with colourful houses and palm trees at golden hour.
+- Light/colour: soft warm golden light with glow, rich saturated grading, razor-sharp 4K, shallow depth of field.
+
+Style line to append to image prompts: "Premium glossy cinematic AI-drama look like top Nigerian romance series on YouTube: very attractive, model-like actors with flawless radiant skin, sculpted features and styled hair, high-fashion modern wardrobe with designer accessories, soft warm golden lighting with glowing highlights, luxurious polished sets, vibrant rich colour grading, razor-sharp 4K, shallow depth of field."
+
+## 8. Practical notes
+
+- Give every generated reference image a unique clean name right after it is made (for example `V2_SC01_E1`) so later steps can attach it by exact name; auto-generated titles repeat.
+- Generate and verify the character and environment sheets first, then each scene's establishing shot, then coverage.
+- Some video filters reject a close-up as "prominent people" or a still as revealing; retry with the medium shot of the same character.
