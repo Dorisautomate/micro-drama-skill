@@ -14,10 +14,10 @@ Only env var NAMES go here, never the keys themselves.
 - Max clip length (s):
 - Adapter: tools/adapters/video.py
 
-## Voice (text-to-speech)
+## Voice (optional: speech normally comes from the video model itself)
 - Provider / model:
 - API key env var:
-- Narrator voice id:
+- Per-character voice descriptions live in each character file
 - Character voices: (Character → voice id)
 - Adapter: tools/adapters/voice.py
 
@@ -25,5 +25,5 @@ Only env var NAMES go here, never the keys themselves.
 - Provider or file:
 
 ## Output
-- Resolution / aspect ratio: 1080x1920 (9:16)
+- Resolution / aspect ratio: 1920x1080 (16:9)
 - FPS: 24

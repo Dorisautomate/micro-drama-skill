@@ -1,62 +1,56 @@
 ---
 name: micro-drama
-description: Turn a story (cast + framework) into a narrated, AI-generated micro drama series. Plans every episode, scene, character sheet, environment and shot, then (one episode at a time, on request) generates shot images, animates them into clips with the user's own video API, adds short voiceover lines, and stitches each episode. Use when the user gives a story and wants a micro drama, soap-opera-style short video series, or narrated AI video episodes.
+description: Turn a story (cast + framework) into a micro drama series where the characters themselves speak in conversational, culturally authentic dialogue. Plans every episode and scene, builds character/environment sheets, then (one episode at a time, on request) generates a wide establishing shot plus medium and close-up coverage for each scene, animates each line into a lip-synced clip with the user's own image and video models, and stitches the episode. Use when the user gives a story and wants a movie-style, dialogue-driven short video series.
 ---
 
 # Micro Drama Skill
 
-Narrated micro dramas: short vertical episodes made of AI-generated still images, animated into clips, each carrying one short voiceover line (narrator or character), stitched into a finished episode. The **user brings their own image, video and voice API keys**; this skill never ships or stores keys.
+Movie-style episodes: characters talk to each other in the video itself (lip-synced speech from an image-to-video model). **No narrator, no separate voiceover.** The user brings their own image and image-to-video providers/keys; this skill never ships or stores keys.
 
-Working folder = wherever the user opened the agent. Create these next to this skill if missing: `queue.md`, `story/`, `config/`, `series/`. Copy `templates/`, `tools/` and `queue.md` from this skill folder when starting.
+Working folder = where the user opened the agent. Create if missing: `queue.md`, `story/`, `config/`, `series/`, and copy `templates/` and `tools/` from this skill. Read `references/dialogue-coverage.md` before planning any scene; it holds the rules summarised below.
 
 ## Step 0: Provider setup (first run only)
 
-Read `config/providers.md` (create from `config/providers.example.md` if absent). If any of image / video / voice is blank, run setup before anything else:
-
-1. Ask the user, for each capability, **which service/model they use** and **the name of the environment variable holding their key** (never ask them to paste a key into chat or a file; if they paste one, tell them to put it in an env var / `.env` and don't repeat it).
-   - Image generation (text-to-image; ideally with reference-image input for consistency)
-   - Image-to-video (animating a still)
-   - Voice / text-to-speech
-   - Music (optional)
-2. Ask them for the provider's API docs link or an example `curl`, or use the docs if you can fetch them. Then write a tiny adapter in `tools/adapters/` for each one, following `tools/adapters/README.md` (a CLI that takes a prompt/inputs and writes a file). Test each adapter with **one** cheap call, and confirm with the user before spending.
-3. Record choices (provider, model, env var name, max clip seconds, aspect ratio, voice ids) in `config/providers.md`.
-
-Only after all three required adapters work, proceed.
+Read `config/providers.md` (create from `config/providers.example.md`). Needed: **image generation with reference-image input**, and **image-to-video that speaks dialogue written in the prompt with lip sync** (e.g. Google Flow Veo/Omni, other video models with native audio). Ask which services and which env var holds each key (never ask for keys in chat). Write small adapters (`tools/adapters/README.md`), or drive the provider's web UI if the user prefers a browser tool. Test with one cheap call, confirm cost with the user, and record the choices (default aspect ratio **16:9**).
 
 ## Step 1: Queue and PLAN (automatic)
 
-When the user supplies a story (file in `story/` or pasted into chat; save pasted stories as `story/<slug>.md` using `story/story-template.md`), add it to `queue.md` and plan the **entire series** without stopping for approval between steps. Ask only if a blocker is missing (cast, genre, ending).
+Save the story as `story/<slug>.md`, add it to `queue.md`, and plan the whole series without stopping, using `templates/`:
 
-Create under `series/<slug>/`:
+1. `series/<slug>/bible.md`: logline, genre, tone, visual style, aspect ratio, episode length, plot arc, ending, cultural/language notes (who speaks which register).
+2. `characters/<name>.md`: fixed identity prompt, wardrobe table, voice description (accent, pitch, pace, age) reused verbatim in every video prompt; plus a multi-angle sheet image.
+3. `environments/<name>.md`: fixed location prompt + sheet image.
+4. `episodes/EPnn/episode.md` and one `scenes/SCnn.md` per scene.
 
-1. `bible.md`: logline, genre, tone, themes, visual style, aspect ratio (default 9:16), episode length (default 45–90 s), narrator persona, full plot arc, ending.
-2. `characters/<name>.md` per `templates/character-sheet.md`: fixed **identity prompt** (reused verbatim in every shot) and a **multi-angle camera sheet** (front, 3/4 L, 3/4 R, profile, back, close-up, full body, key expressions). Assign each speaking character a voice.
-3. `environments/<name>.md` per `templates/environment-sheet.md`: fixed **location prompt** and multi-angle sheet. Every environment that appears in the series gets one.
-4. `episodes/EPnn/episode.md` per `templates/episode.md`: soap-opera structure; hook, escalation, cliffhanger, recap of previous episode.
-5. `episodes/EPnn/scenes/SCnn.md` per `templates/scene.md`: location, characters present, purpose, emotional beat, the lines with each character's **thought/subtext**, and the **shot list**.
+**Each scene is a real conversation**: 6-10 lines, back and forth, written the way those people actually talk (see the register guide in `references/dialogue-coverage.md`: Nigerian parents, rich vs poor, classy/young slang, village speakers, pidgin where natural). Keep each line to roughly 8-16 words. Non-speaking beats are short silent shots (about 3 s), never narration.
 
-**Narration format:** each shot carries one short voiceover line (max ~15 words, one breath). The speaker is either the narrator or a character in the scene. Longer dialogue is split across consecutive shots. Shot duration = voiceover length + ~0.5 s, capped at the video model's max clip length.
+Each scene file also holds its **shot plan** (coverage) and the **per-line duration** chosen with `tools/plan_durations.py`.
 
-Keep continuity (costume, injuries, props, time of day) across scenes and episodes. When planning is done, STOP. Update `queue.md` to `planned`, summarize the series (episode titles + one line each), and ask which episode to produce.
+Planning ends with a summary and the question of which episode to produce.
 
 ## Step 2: PRODUCE EPISODE (only when the user names one)
 
-Before the first paid call of the episode, state the counts (images, clips, voice lines) and wait for a yes. Then, in order:
+State counts and credit estimate (images, clips and the chosen duration of each clip); wait for a yes. Then, **scene by scene, in order**:
 
-1. **Reference sheets.** Generate any missing character-sheet and environment-sheet images used in this episode (`characters/images/`, `environments/images/`). Review them with the user if they want; later shots depend on them.
-2. **Shot images.** For each shot: prompt = identity prompt(s) + location prompt + shot action + series visual style, with the matching sheet images as references → `episodes/EPnn/images/SCnn_SHnn.png`.
-3. **Video clips.** Animate each image with the user's image-to-video adapter, using the shot's motion prompt → `episodes/EPnn/clips/SCnn_SHnn.mp4`.
-4. **Voiceover.** Generate each shot's line with the assigned voice → `episodes/EPnn/audio/SCnn_SHnn.mp3`.
-5. **Stitch.** `python tools/stitch_episode.py series/<slug>/episodes/EPnn` (needs ffmpeg) → `final/EPnn.mp4`. Optional `music.mp3` is mixed low.
-6. Update `episode.md` status and `queue.md`, show the output path, ask whether to proceed to the next episode.
+1. **Establishing shot first.** One wide shot containing every speaking character in their positions in the location (references: the character images + the environment image).
+2. **Coverage from the establishing shot.** For each speaker generate a **medium shot** and a **close-up**, each using the establishing image as a reference so positions, room and lighting match (speaker looks toward where the other character sits; eyelines stay consistent). In a 3-person scene do this for all three. A medium two-shot may be added for context.
+3. **One clip per line.** Animate the image that fits the line, always cutting to the speaker: alternate medium and close-up angles for the same person over the scene, reuse images freely, and use the wide shot for entrances, exits and group beats. Put the line in the video prompt verbatim with the character's voice description and "lips move in sync with the words". A silent 3 s hold on the establishing shot opens the scene when useful.
+4. **Duration per clip is chosen from the line length** (see Duration rule). Never leave a line to be cut off.
+5. Download clips into `episodes/EPnn/talk/SCnn_SHnn.mp4` (speaking) and `episodes/EPnn/clips/` (silent inserts); images in `episodes/EPnn/coverage/`.
+6. **Stitch:** `python tools/stitch_dialogue.py series/<slug>/episodes/EPnn [--scene SC02]`. It trims each speaking clip to where the speech starts and ends, normalises loudness, and joins everything into `final/EPnn.mp4` (1920x1080).
+7. Check for failures (e.g. content-filter rejections on a still): regenerate only that shot, or fall back to a slow push-in on the still with ffmpeg. Update `episode.md` and `queue.md`; ask whether to continue.
 
-Repeat per episode until the series is complete; then offer a full-series cut.
+## Duration rule (important)
+
+Estimate how long the spoken line takes and pick the clip length that fits it, **with headroom**, so no sentence is cut off:
+
+`seconds = words / 2.3 + 0.9`, then choose the smallest available duration >= that (typically 4, 6, 8 or 10 s). Run `python tools/plan_durations.py "line one" "line two" ...` to get the table. Examples: 7 words -> 4 s; 12 words -> 8 s; 17 words -> 10 s. Prefer splitting a very long line (over about 17 words) into two shots of two speakers or two angles. Add to every dialogue prompt: "the character finishes the whole sentence, then stops speaking and holds a natural pause". Check the generated clip: if the speech runs to the very last frame, regenerate that line with the next duration up.
 
 ## Rules
 
-- Never produce an episode the user hasn't named; never skip ahead.
-- Never write keys anywhere. Only env var **names** go in config. `.env` is gitignored.
-- Paste identity and location prompts **verbatim** into every shot; never paraphrase (this is what keeps characters consistent).
-- Regenerate only failed/off shots, not the whole episode.
-- Save everything with the naming above so any agent can resume from files alone; the files are the state.
-- If a provider call fails or is rate-limited, retry with backoff, then report which shots are missing; the next run should skip shots whose output file already exists.
+- Never produce an episode the user hasn't named. Never skip ahead.
+- Keys only as env var names. Never write keys anywhere.
+- Characters speak; no narrator. Dialogue must be conversational and culturally true to each speaker.
+- Paste identity, wardrobe and voice descriptions verbatim; keep faces consistent by always attaching the character image and the scene's establishing image.
+- Generate the establishing shot before the close-ups, every scene.
+- Save everything with the naming above so any agent can resume from files alone.

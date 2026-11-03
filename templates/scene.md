@@ -4,19 +4,27 @@
 - Time of day / weather:
 - Characters present (character files):
 - Purpose of scene:
-- Emotional beat (start → end):
+- Emotional beat (start -> end):
 - Continuity notes (props, costume, injuries):
 
-## Dialogue with thoughts
-| # | Character | Line | Thought / subtext | Delivery (tone, action) |
-|---|-----------|------|-------------------|-------------------------|
-| 1 | | | | |
+## Conversation
+Back and forth, 6-10 lines, each 8-16 words, in each speaker's real register (class, age, region).
+Duration comes from `python tools/plan_durations.py` (smallest clip length that fits the line).
 
-## Shot list
-One short voiceover line per shot (max ~15 words). Speaker is the narrator or a character. Duration = line length + ~0.5 s, capped at the video model's max clip length.
+| # | Speaker | Line (spoken in the clip) | Thought / subtext | Delivery | Shot (image) | Clip length (s) |
+|---|---------|---------------------------|-------------------|----------|--------------|-----------------|
+| 1 | | | | | Speaker medium | |
 
-| Shot | Dialogue # | Voiceover speaker | Voiceover line | Type | Camera angle / move | On screen | Character sheet angle | Environment angle | Duration (s) | Image prompt | Motion prompt |
-|------|-----------|-------------------|----------------|------|---------------------|-----------|-----------------------|-------------------|--------------|--------------|---------------|
-| SH01 | 1 | Narrator | | wide / medium / CU / OTS | | | | | 4 | identity prompt + location prompt + action + style | |
+## Coverage plan (generate in this order)
+| Image id | Shot | Framing | References to attach | Notes (who looks where) |
+|----------|------|---------|----------------------|-------------------------|
+| E | Establishing wide | all speakers visible, positions fixed | character images + environment image | A on left, B on right |
+| A_m | A medium | medium, same side as E | E + A image | looks toward B (off-screen right) |
+| A_c | A close-up | tight | E + A image | same eyeline |
+| B_m | B medium | | E + B image | |
+| B_c | B close-up | | E + B image | |
 
-Image prompt = identity prompt(s) + location prompt + shot description + series visual style (verbatim blocks, never paraphrased).
+Optional silent inserts (about 3 s, no narration): establishing hold, reaction, someone passing.
+
+## Clip prompts
+One per line, using the template in `references/dialogue-coverage.md` (voice description + exact line + lip sync + finish the sentence + hold a pause).
